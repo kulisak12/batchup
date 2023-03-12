@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+    { name = "David Klement" },
+]
+name = "batchup"
+version = "0.1"
+description = "A simple backup utility."
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["backup"]
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+]
+dependencies = [
+]
+
+[project.scripts]
+batchup = "batchup.main:main"
