@@ -39,7 +39,9 @@ def backup_recursively(
 def backup_file(source: str, target: str, dry_run: bool) -> None:
     """Copies source to target if source is newer than target."""
     target_dir = os.path.dirname(target)
-    os.makedirs(target_dir, exist_ok=True)
+    if not dry_run:
+        os.makedirs(target_dir, exist_ok=True)
+
     if not is_newer(source, target):
         logger.log(10, f"Up to date: {source}")
     elif dry_run:
