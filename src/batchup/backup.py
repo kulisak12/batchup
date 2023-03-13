@@ -59,7 +59,11 @@ def is_newer(source: str, target: str) -> bool:
     """Tests if the source file is newer than the target file."""
     if not os.path.exists(target):
         return True
-    return os.path.getmtime(source) > os.path.getmtime(target)
+    source_time = os.path.getmtime(source)
+    target_time = os.path.getmtime(target)
+    # some devices have limited precision
+    TOLERANCE = 10  # seconds
+    return source_time - target_time > TOLERANCE
 
 
 def ensure_slash_if_dir(path: str) -> str:
