@@ -6,8 +6,9 @@ import logging
 import os
 
 from batchup.args import Namespace, parse_args
-from batchup.entries import Entry, parse_entries
 from batchup.backup import backup_recursively, inject_logger
+from batchup.entries import Entry, parse_entries
+from batchup.patterns import glob_to_path_matching_pattern
 
 
 args: Namespace
@@ -20,29 +21,19 @@ def main() -> None:
     inject_logger(logger)
 
     with open(args.entries) as f:
-        entries, ignored = parse_entries(f, args.sep)
-    run_backup(entries, ignored)
+        entries, ignored_globs = parse_entries(f, args.sep)
+    run_backup(entries, ignored_globs)
 
 
-def run_backup(entries: List[Entry], ignored: Set[str]) -> None:
+def run_backup(entries: List[Entry], ignored_globs: Set[str]) -> None:
     """Backup entries to backup_dir."""
-    # remove slash from source and ignored paths
-    # so that we can compare them easily
-    ignored = {remove_slash(path) for path in ignored}
+    ignored = {glob_to_path_matching_pattern(path) for path in ignored_globs}
     for entry in entries:
         sources: List[str] = glob.glob(entry.source, recursive=True)
         for source in sources:
-            source = remove_slash(source)
-            basename = os.path.basename(source)
+            basename = os.path.basename(source.rstrip(os.path.sep))
             target = os.path.join(args.backup_dir, entry.target, basename)
             backup_recursively(source, target, ignored, args.dry_run)
-
-
-def remove_slash(path: str) -> str:
-    """Remove trailing slash from path."""
-    if path.endswith(os.path.sep):
-        return path[:-1]
-    return path
 
 
 def build_logger() -> logging.Logger:

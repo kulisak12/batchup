@@ -2,14 +2,17 @@
 from typing import Dict, Iterable, List, Optional, Set, TextIO, Tuple
 import logging
 import os
+import re
 import shutil
+
+from batchup.patterns import matches_any
 
 
 logger: logging.Logger
 
 
 def backup_recursively(
-    source: str, target: str, ignored: Set[str], dry_run: bool
+    source: str, target: str, ignored: Set[re.Pattern], dry_run: bool
 ) -> None:
     """Backup source to target recursively.
 
@@ -17,7 +20,8 @@ def backup_recursively(
     If source is a directory, it is traversed recursively.
     If any file or directory matches an entry in ignored, it is skipped.
     """
-    if source in ignored:
+    source = ensure_slash_if_dir(source)
+    if matches_any(source, ignored):
         logger.log(10, f"Ignored: {source}")
         return
     if os.path.islink(source):
@@ -56,6 +60,13 @@ def is_newer(source: str, target: str) -> bool:
     if not os.path.exists(target):
         return True
     return os.path.getmtime(source) > os.path.getmtime(target)
+
+
+def ensure_slash_if_dir(path: str) -> str:
+    """Ensure directory paths end with a slash."""
+    if os.path.isdir(path):
+        return os.path.join(path, "")
+    return path
 
 
 def inject_logger(logger_: logging.Logger) -> None:
