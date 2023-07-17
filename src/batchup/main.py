@@ -7,7 +7,7 @@ import os
 
 from batchup.args import Namespace, parse_args
 from batchup.backup import backup_recursively, inject_logger
-from batchup.entries import Entry, parse_entries
+from batchup.entries import parse_entries
 from batchup.patterns import glob_to_path_matching_pattern
 
 
@@ -21,18 +21,17 @@ def main() -> None:
     inject_logger(logger)
 
     with open(args.entries) as f:
-        entries, ignored_globs = parse_entries(f, args.sep)
+        entries, ignored_globs = parse_entries(f)
     run_backup(entries, ignored_globs)
 
 
-def run_backup(entries: List[Entry], ignored_globs: Set[str]) -> None:
+def run_backup(entries: List[str], ignored_globs: Set[str]) -> None:
     """Backup entries to backup_dir."""
     ignored = {glob_to_path_matching_pattern(path) for path in ignored_globs}
     for entry in entries:
-        sources: List[str] = glob.glob(entry.source, recursive=True)
+        sources: List[str] = glob.glob(entry, recursive=True)
         for source in sources:
-            basename = os.path.basename(source.rstrip(os.path.sep))
-            target = os.path.join(args.backup_dir, entry.target, basename)
+            target = os.path.join(args.backup_dir, source.lstrip(os.path.sep))
             backup_recursively(source, target, ignored, args.dry_run)
 
 

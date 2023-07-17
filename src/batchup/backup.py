@@ -49,9 +49,9 @@ def backup_file(source: str, target: str, dry_run: bool) -> None:
     if not is_newer(source, target):
         logger.log(10, f"Up to date: {source}")
     elif dry_run:
-        logger.log(30, f"Would copy: {source} -> {target}")
+        logger.log(30, f"Would copy: {source}")
     else:
-        logger.log(30, f"Copying: {source} -> {target}")
+        logger.log(30, f"Copying: {source}")
         shutil.copy(source, target)
 
 
