@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-import sys
-from typing import Dict, List, Optional, Set, TextIO, Tuple
 import glob
 import logging
 import os
+import sys
+from typing import Dict, List, Optional, Set, TextIO, Tuple
 
 from batchup.args import Namespace, parse_args
 from batchup.backup import backup_recursively, inject_logger
 from batchup.patterns import glob_to_path_matching_pattern
 from batchup.rules import parse_rules
-
 
 args: Namespace
 

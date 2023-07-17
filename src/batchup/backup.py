@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-from typing import Dict, Iterable, List, Optional, Set, TextIO, Tuple
 import logging
 import os
 import re
 import shutil
+from typing import Dict, Iterable, List, Optional, Set, TextIO, Tuple
 
 from batchup.patterns import matches_any
-
 
 logger: logging.Logger
 
