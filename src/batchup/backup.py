@@ -18,7 +18,7 @@ def backup_recursively(
 
     If source is a file, it is copied to target.
     If source is a directory, it is traversed recursively.
-    If any file or directory matches an entry in ignored, it is skipped.
+    If any file or directory matches a pattern in ignored, it is skipped.
     """
     source = ensure_slash_if_dir(source)
     if matches_any(source, ignored):

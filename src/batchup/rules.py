@@ -3,16 +3,16 @@ from typing import Dict, List, Optional, Set, TextIO, Tuple
 from batchup.error import BatchupError
 
 
-def parse_entries(
-    entries_file: TextIO
+def parse_rules(
+    rules_file: TextIO
 ) -> Tuple[List[str], Set[str]]:
-    """Parses entries and ignored patterns from a file."""
-    sections = parse_headered_file(entries_file)
-    entries = sections.pop("", []) + sections.pop("[copy]", [])
+    """Parses paths and ignored patterns from a file."""
+    sections = parse_headered_file(rules_file)
+    paths = sections.pop("", []) + sections.pop("[copy]", [])
     ignored = set(sections.pop("[ignore]", []))
     if sections:
         raise BatchupError(f"Unknown section(s): {', '.join(sections)}")
-    return entries, ignored
+    return paths, ignored
 
 
 def parse_headered_file(file: TextIO) -> Dict[str, List[str]]:
