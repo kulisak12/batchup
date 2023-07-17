@@ -17,7 +17,7 @@ args: Namespace
 def main() -> None:
     global args
     args = parse_args()
-    logger = build_logger()
+    logger = build_logger(args.verbose)
     inject_logger(logger)
 
     with open(args.entries) as f:
@@ -36,11 +36,11 @@ def run_backup(entries: List[Entry], ignored_globs: Set[str]) -> None:
             backup_recursively(source, target, ignored, args.dry_run)
 
 
-def build_logger() -> logging.Logger:
+def build_logger(verbose_count: int) -> logging.Logger:
     """Return a logger."""
     logger = logging.getLogger("batchup")
     logger.addHandler(logging.StreamHandler(sys.stdout))
-    verbosity = min(args.verbose, 2)
+    verbosity = min(verbose_count, 2)
     logger.setLevel(30 - (10 * verbosity))
     return logger
 
