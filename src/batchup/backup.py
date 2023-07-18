@@ -3,55 +3,26 @@ import logging
 import os
 import re
 import shutil
-from typing import Dict, Iterable, List, Optional, Set, TextIO, Tuple
+from typing import Dict, Generator, List, Optional, Set, TextIO, Tuple
 
+from batchup.error import BatchupError
 from batchup.patterns import matches_any
+from batchup.target import TargetDerivation
 
 logger: logging.Logger
 
 
-def backup_recursively(
-    source: str, target: str, ignored: Set[re.Pattern], dry_run: bool
+def backup_tree(
+    tree: str, derivation: TargetDerivation,
+    ignored: Set[re.Pattern], dry_run: bool
 ) -> None:
-    """Backup source to target recursively.
-
-    If source is a file, it is copied to target.
-    If source is a directory, it is traversed recursively.
-    If any file or directory matches a pattern in ignored, it is skipped.
-    """
-    source = ensure_slash_if_dir(source)
-    if matches_any(source, ignored):
-        logger.log(10, f"Ignored: {source}")
-        return
-    if os.path.islink(source):
-        logger.log(20, f"Skipping symlink: {source}")
-        return
-    if os.path.isfile(source):
-        backup_file(source, target, dry_run)
-        return
-    if os.path.isdir(source):
-        # recurse
-        for filename in os.listdir(source):
-            backup_recursively(
-                os.path.join(source, filename),
-                os.path.join(target, filename),
-                ignored, dry_run
-            )
-
-
-def backup_file(source: str, target: str, dry_run: bool) -> None:
-    """Copies source to target if source is newer than target."""
-    target_dir = os.path.dirname(target)
-    if not dry_run:
-        os.makedirs(target_dir, exist_ok=True)
-
-    if not is_newer(source, target):
-        logger.log(10, f"Up to date: {source}")
-    elif dry_run:
-        logger.log(30, f"Would copy: {source}")
-    else:
-        logger.log(30, f"Copying: {source}")
-        shutil.copy(source, target)
+    """Copies unignored files from tree to target."""
+    for source in list_unignored_files_in_tree(tree, ignored):
+        target = derivation(source)
+        if is_newer(source, target):
+            backup_file(source, target, dry_run)
+        else:
+            logger.log(10, f"Up to date: {source}")
 
 
 def is_newer(source: str, target: str) -> bool:
@@ -65,7 +36,39 @@ def is_newer(source: str, target: str) -> bool:
     return source_time - target_time > TOLERANCE
 
 
-def ensure_slash_if_dir(path: str) -> str:
+def backup_file(source: str, target: str, dry_run: bool) -> None:
+    """Copies source to target."""
+    target_dir = os.path.dirname(target)
+    if dry_run:
+        logger.log(30, f"Would copy: {source}")
+    else:
+        logger.log(30, f"Copying: {source}")
+        os.makedirs(target_dir, exist_ok=True)
+        shutil.copy(source, target)
+
+
+def list_unignored_files_in_tree(
+    path: str, ignored: Set[re.Pattern]
+) -> Generator[str, None, None]:
+    """Generates paths to unignored files."""
+    # allow patterns to filter dirs by a trailing slash
+    path = end_dir_with_slash(path)
+
+    if matches_any(path, ignored):
+        logger.log(10, f"Ignored: {path}")
+    elif os.path.islink(path):
+        logger.log(20, f"Skipping symlink: {path}")
+    elif os.path.isfile(path):
+        yield path
+    elif os.path.isdir(path):
+        for entry in os.listdir(path):
+            entry_path = os.path.join(path, entry)
+            yield from list_unignored_files_in_tree(entry_path, ignored)
+    else:
+        raise BatchupError(f"Can't process path: {path}")
+
+
+def end_dir_with_slash(path: str) -> str:
     """Ensure directory paths end with a slash."""
     if os.path.isdir(path):
         return os.path.join(path, "")
