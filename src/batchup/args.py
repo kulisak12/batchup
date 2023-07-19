@@ -1,5 +1,5 @@
 import argparse
-from typing import Any
+from typing import Any, Optional
 
 
 class Namespace(argparse.Namespace):
@@ -7,6 +7,7 @@ class Namespace(argparse.Namespace):
         super().__init__(*args, **kwargs)
 
         self.dry_run: bool
+        self.root: Optional[str]
         self.verbose: int
 
         self.rules: str
@@ -17,6 +18,7 @@ def parse_args() -> Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-n", "--dry-run", action="store_true", help="Don't copy anything, just show what would be done.")
+    parser.add_argument("-r", "--root", default=None, help="The path that will correspond to the backup directory. Defaults to filesystem root.")
     parser.add_argument("-v", "--verbose", action="count", default=0, help="Be more verbose. Can be used up to 2 times.")
 
     parser.add_argument("rules", help="Path to the rules file.")
