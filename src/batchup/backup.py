@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import logging
 import os
-import re
 import shutil
-from typing import Dict, Generator, List, Optional, Set, TextIO, Tuple
+from typing import Dict, Generator, List, Optional, Pattern, Set, TextIO, Tuple
 
 from batchup.error import BatchupError
 from batchup.patterns import matches_any
@@ -14,7 +13,7 @@ logger: logging.Logger
 
 def backup_tree(
     tree: str, derivation: TargetDerivation,
-    ignored: Set[re.Pattern], dry_run: bool
+    ignored: Set[Pattern[str]], dry_run: bool
 ) -> None:
     """Copies unignored files from tree to target."""
     for source in list_unignored_files_in_tree(tree, ignored):
@@ -48,7 +47,7 @@ def backup_file(source: str, target: str, dry_run: bool) -> None:
 
 
 def list_unignored_files_in_tree(
-    path: str, ignored: Set[re.Pattern]
+    path: str, ignored: Set[Pattern[str]]
 ) -> Generator[str, None, None]:
     """Generates paths to unignored files."""
     # allow patterns to filter dirs by a trailing slash

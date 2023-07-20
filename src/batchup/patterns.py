@@ -1,16 +1,16 @@
 import re
-from typing import Iterable
+from typing import Iterable, Pattern
 
 
-def matches(s: str, pat: re.Pattern) -> bool:
+def matches(s: str, pat: Pattern[str]) -> bool:
     return pat.match(s) is not None
 
 
-def matches_any(s: str, pats: Iterable[re.Pattern]) -> bool:
+def matches_any(s: str, pats: Iterable[Pattern[str]]) -> bool:
     return any(matches(s, pat) for pat in pats)
 
 
-def glob_to_path_matching_pattern(glob: str) -> re.Pattern:
+def glob_to_path_matching_pattern(glob: str) -> Pattern[str]:
     """Compile a glob pattern of a path to a regular expression."""
     pattern = _translate(glob)
     if not pattern.endswith("/"):
