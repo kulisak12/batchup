@@ -5,6 +5,7 @@ import shutil
 from typing import Dict, Generator, List, Optional, Pattern, Set, TextIO, Tuple
 
 from batchup.error import BatchupError
+from batchup.interrupt import ExitOnDoubleInterrupt
 from batchup.patterns import matches_any
 from batchup.target import TargetDerivation
 
@@ -36,14 +37,17 @@ def is_newer(source: str, target: str) -> bool:
 
 
 def backup_file(source: str, target: str, dry_run: bool) -> None:
-    """Copies source to target."""
+    """Backups source to target."""
     target_dir = os.path.dirname(target)
     if dry_run:
         logger.log(30, f"Would copy: {source}")
     else:
         logger.log(30, f"Copying: {source}")
         os.makedirs(target_dir, exist_ok=True)
-        shutil.copy(source, target)
+        with ExitOnDoubleInterrupt(
+            "Interrupt received, waiting for copy to finish. Interrupt again to force exit."
+        ):
+            shutil.copy(source, target)
 
 
 def list_unignored_files_in_tree(
