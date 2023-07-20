@@ -36,7 +36,10 @@ def run_backup(
     for path in paths:
         source_trees: List[str] = glob.glob(path, recursive=True)
         for source_tree in source_trees:
-            backup_tree(source_tree, target_derivation, ignored, args.dry_run)
+            backup_tree(
+                source_tree, target_derivation,
+                ignored, args.skip_links, args.dry_run
+            )
 
 
 def build_logger(verbose_count: int) -> logging.Logger:

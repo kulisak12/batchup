@@ -14,10 +14,10 @@ logger: logging.Logger
 
 def backup_tree(
     tree: str, derivation: TargetDerivation,
-    ignored: Set[Pattern[str]], dry_run: bool
+    ignored: Set[Pattern[str]], skip_links: bool, dry_run: bool
 ) -> None:
     """Copies unignored files from tree to target."""
-    for source in list_unignored_files_in_tree(tree, ignored):
+    for source in list_unignored_files_in_tree(tree, ignored, skip_links):
         target = derivation(source)
         if is_newer(source, target):
             backup_file(source, target, dry_run)
@@ -51,7 +51,7 @@ def backup_file(source: str, target: str, dry_run: bool) -> None:
 
 
 def list_unignored_files_in_tree(
-    path: str, ignored: Set[Pattern[str]]
+    path: str, ignored: Set[Pattern[str]], skip_links: bool
 ) -> Generator[str, None, None]:
     """Generates paths to unignored files."""
     # allow patterns to filter dirs by a trailing slash
@@ -60,13 +60,18 @@ def list_unignored_files_in_tree(
     if matches_any(path, ignored):
         logger.log(10, f"Ignored: {path}")
     elif os.path.islink(path):
-        logger.log(20, f"Skipping symlink: {path}")
+        if skip_links:
+            logger.log(10, f"Skipping symlink: {path}")
+        else:
+            yield path
     elif os.path.isfile(path):
         yield path
     elif os.path.isdir(path):
         for entry in os.listdir(path):
             entry_path = os.path.join(path, entry)
-            yield from list_unignored_files_in_tree(entry_path, ignored)
+            yield from list_unignored_files_in_tree(
+                entry_path, ignored, skip_links
+            )
     else:
         raise BatchupError(f"Can't process path: {path}")
 
