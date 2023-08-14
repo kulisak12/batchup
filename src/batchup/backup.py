@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import glob
 import logging
 import os
 import shutil
-from typing import Dict, Generator, List, Optional, Pattern, Set, TextIO, Tuple
+import zipfile
+from typing import Generator, Iterable, Optional, Pattern, Set
 
 from batchup.error import BatchupError
 from batchup.interrupt import ExitOnDoubleInterrupt
@@ -10,6 +12,11 @@ from batchup.patterns import matches_any
 from batchup.target import TargetDerivation
 
 logger: logging.Logger
+
+
+def expand_globs(globs: Iterable[str]) -> Generator[str, None, None]:
+    for path in globs:
+        yield from glob.glob(path, recursive=True)
 
 
 def backup_tree(
@@ -81,6 +88,38 @@ def end_dir_with_slash(path: str) -> str:
     if os.path.isdir(path):
         return os.path.join(path, "")
     return path
+
+
+def backup_zip(
+    source: str, derivation: TargetDerivation, dry_run: bool
+) -> None:
+    """Zips source and backups it to target."""
+    target = derivation(source) + ".zip"
+    if not needs_zip_update(source, target):
+        logger.log(10, f"Up to date: {source}")
+    elif dry_run:
+        logger.log(30, f"Would zip: {source}")
+    else:
+        logger.log(30, f"Zipping: {source}")
+        zip_directory(source, target)
+
+
+def zip_directory(source: str, target: str) -> None:
+    """Creates a zip file from a directory."""
+    with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(source):
+            for file in files:
+                file_path = os.path.join(root, file)
+                arcname = os.path.relpath(file_path, source)
+                zipf.write(file_path, arcname)
+
+
+def needs_zip_update(dir: str, zip_file: str) -> bool:
+    """Decides whether contents of directory updated since zipped."""
+    for entry in list_unignored_files_in_tree(dir, set(), skip_links=False):
+        if is_newer(entry, zip_file):
+            return True
+    return False
 
 
 def inject_logger(logger_: logging.Logger) -> None:

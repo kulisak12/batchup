@@ -5,14 +5,15 @@ from batchup.error import BatchupError
 
 def parse_rules(
     rules_file: TextIO
-) -> Tuple[List[str], Set[str]]:
+) -> Tuple[List[str], List[str], Set[str]]:
     """Parses paths and ignored patterns from a file."""
     sections = parse_headered_file(rules_file)
     paths = sections.pop("", []) + sections.pop("[copy]", [])
     ignored = set(sections.pop("[ignore]", []))
+    zip_paths = sections.pop("[zip]", [])
     if sections:
         raise BatchupError(f"Unknown section(s): {', '.join(sections)}")
-    return paths, ignored
+    return paths, zip_paths, ignored
 
 
 def parse_headered_file(file: TextIO) -> Dict[str, List[str]]:
