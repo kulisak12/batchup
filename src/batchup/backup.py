@@ -95,13 +95,18 @@ def backup_zip(
 ) -> None:
     """Zips source and backups it to target."""
     target = derivation(source) + ".zip"
+    target_dir = os.path.dirname(target)
     if not needs_zip_update(source, target):
         logger.log(10, f"Up to date: {source}")
     elif dry_run:
         logger.log(30, f"Would zip: {source}")
     else:
         logger.log(30, f"Zipping: {source}")
-        zip_directory(source, target)
+        os.makedirs(target_dir, exist_ok=True)
+        with ExitOnDoubleInterrupt(
+            "Interrupt received, waiting for zip to finish. Interrupt again to force exit."
+        ):
+            zip_directory(source, target)
 
 
 def zip_directory(source: str, target: str) -> None:
