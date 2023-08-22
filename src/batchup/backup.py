@@ -65,10 +65,10 @@ def list_unignored_files_in_tree(
     path = end_dir_with_slash(path)
 
     if matches_any(path, ignored):
-        logger.log(10, f"Ignored: {path}")
+        logger.log(20, f"Ignored: {path}")
     elif os.path.islink(path):
         if skip_links:
-            logger.log(10, f"Skipping symlink: {path}")
+            logger.log(20, f"Skipping symlink: {path}")
         else:
             yield path
     elif os.path.isfile(path):
