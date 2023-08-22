@@ -53,10 +53,13 @@ def run_backup(
     for source_tree in expand_globs(paths):
         backup_tree(
             source_tree, target_derivation,
-            ignored, args.skip_links, args.dry_run
+            ignored, args.keep_symlinks, args.dry_run
         )
     for zip_tree in expand_globs(zip_paths):
-        backup_zip(zip_tree, target_derivation, args.dry_run)
+        backup_zip(
+            zip_tree, target_derivation,
+            args.keep_symlinks, args.dry_run
+        )
 
 
 def build_logger(verbose_count: int) -> logging.Logger:
