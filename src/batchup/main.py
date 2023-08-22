@@ -11,10 +11,12 @@ from batchup.rules import parse_rules
 from batchup.target import TargetDerivation, select_target_derivation
 
 args: Namespace
+logger: logging.Logger
 
 
 def main() -> None:
     global args
+    global logger
     args = parse_args()
     logger = build_logger(args.verbose)
     inject_logger(logger)
@@ -35,7 +37,11 @@ def run_execs(exec_paths: List[str]) -> None:
     Scripts are executed in the current directory.
     """
     for exec_path in expand_globs(exec_paths):
-        os.system(exec_path)
+        if args.dry_run:
+            logger.log(30, f"Would execute: {exec_path}")
+        else:
+            logger.log(30, f"Executing: {exec_path}")
+            os.system(exec_path)
 
 
 def run_backup(
