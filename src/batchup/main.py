@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import logging
+import os
 import sys
 from typing import Dict, List, Optional, Set, TextIO, Tuple
 
@@ -20,10 +21,21 @@ def main() -> None:
 
     target_derivation = select_target_derivation(args.root, args.backup_dir)
     with open(args.rules) as f:
-        paths, zip_paths, ignored_globs = parse_rules(f)
+        exec_paths, copy_paths, zip_paths, ignored_globs = parse_rules(f)
+    # no need to copy files that will be zipped
     ignored_globs.update(zip_paths)
 
-    run_backup(paths, zip_paths, target_derivation, ignored_globs)
+    run_execs(exec_paths)
+    run_backup(copy_paths, zip_paths, target_derivation, ignored_globs)
+
+
+def run_execs(exec_paths: List[str]) -> None:
+    """Execute scripts.
+
+    Scripts are executed in the current directory.
+    """
+    for exec_path in expand_globs(exec_paths):
+        os.system(exec_path)
 
 
 def run_backup(
