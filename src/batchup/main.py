@@ -46,7 +46,7 @@ def main_checked() -> None:
 
 
 def run_execs(exec_paths: List[str]) -> None:
-    """Execute scripts.
+    """Executes scripts.
 
     Scripts are executed in the current directory.
     """
@@ -59,7 +59,7 @@ def run_execs(exec_paths: List[str]) -> None:
 
 
 def run_backup(rules: Rules, target_derivation: TargetDerivation) -> None:
-    """Backup paths to backup_dir."""
+    """Backups paths to backup_dir."""
     for source_tree in rules.copy:
         backup_tree(
             source_tree, target_derivation,
@@ -82,7 +82,7 @@ def print_orphans(rules: Rules, target_derivation: TargetDerivation) -> None:
 
 
 def build_logger(verbose_count: int) -> logging.Logger:
-    """Return a logger."""
+    """Returns a logger for writing output."""
     logger = logging.getLogger("batchup")
     logger.addHandler(logging.StreamHandler(sys.stdout))
     verbosity = min(verbose_count, 2)

@@ -11,7 +11,7 @@ def matches_any(s: str, pats: Iterable[Pattern[str]]) -> bool:
 
 
 def glob_to_path_matching_pattern(glob: str) -> Pattern[str]:
-    """Compile a glob pattern of a path to a regular expression."""
+    """Compiles a glob pattern of a path to a regular expression."""
     pattern = _translate(glob)
     if not pattern.endswith("/"):
         pattern += "/?"
@@ -20,7 +20,7 @@ def glob_to_path_matching_pattern(glob: str) -> Pattern[str]:
 
 
 def _translate(pat: str) -> str:
-    """Translate a shell PATTERN to a regular expression.
+    """Translates a shell PATTERN to a regular expression.
 
     Similar to fnmatch, but '*' only matches a single path segment.
     Multiple segments can be matched by '**'.

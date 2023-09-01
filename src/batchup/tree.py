@@ -83,7 +83,7 @@ def needs_zip_update(dir: str, zip_file: str, keep_symlinks: bool) -> bool:
 
 
 def _end_dir_with_slash(path: str) -> str:
-    """Ensure directory paths end with a slash."""
+    """Ensures directory paths end with a slash."""
     if os.path.isdir(path):
         return os.path.join(path, "")
     return path
