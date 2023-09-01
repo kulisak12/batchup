@@ -5,7 +5,7 @@ import os
 import shutil
 from typing import Generator, Iterable, Optional, Pattern, Set
 
-from batchup.error import BatchupError
+from batchup import BatchupError
 from batchup.interrupt import ExitOnDoubleInterrupt
 from batchup.patterns import matches_any
 from batchup.target import TargetDerivation

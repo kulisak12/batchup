@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Set, TextIO, Tuple
 
-from batchup.error import BatchupError
+from batchup import BatchupError
 
 
 def parse_rules(

@@ -1,0 +1,2 @@
+class BatchupError(Exception):
+    pass
