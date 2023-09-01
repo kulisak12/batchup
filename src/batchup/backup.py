@@ -1,47 +1,34 @@
 #!/usr/bin/env python3
-import glob
 import logging
 import os
 import shutil
-from typing import Generator, Iterable, Optional, Pattern, Set
+from typing import Optional, Pattern, Set
 
 from batchup import BatchupError
 from batchup.interrupt import ExitOnDoubleInterrupt
-from batchup.patterns import matches_any
 from batchup.target import TargetDerivation
+from batchup.tree import categorize_paths_in_tree, is_newer, needs_zip_update
 from batchup.zip import zip_directory
 
 logger: logging.Logger
-
-
-def expand_globs(globs: Iterable[str]) -> Generator[str, None, None]:
-    for path in globs:
-        yield from glob.glob(path, recursive=True)
 
 
 def backup_tree(
     tree: str, derivation: TargetDerivation,
     ignored: Set[Pattern[str]], keep_symlinks: bool, dry_run: bool
 ) -> None:
-    """Copies unignored files from tree to target."""
-    for source in list_unignored_files_in_tree(tree, ignored, keep_symlinks):
+    """Performs a backup of a tree."""
+    categorized_tree = categorize_paths_in_tree(tree, ignored, keep_symlinks)
+    for source, category in categorized_tree:
+        if category != "":
+            logger.log(20, f"{category}: {source}")
+            continue
         target = derivation(source)
-        if is_newer(source, target):
-            backup_file(source, target, dry_run)
-        else:
+        if not is_newer(source, target):
             logger.log(10, f"Up to date: {source}")
+            continue
 
-
-def is_newer(source: str, target: str) -> bool:
-    """Tests if the source file is newer than the target file."""
-    if not os.path.exists(target):
-        return True
-    # using lstat to avoid following symlinks
-    source_time = os.lstat(source).st_mtime
-    target_time = os.lstat(target).st_mtime
-    # some devices have limited precision
-    TOLERANCE = 10  # seconds
-    return source_time - target_time > TOLERANCE
+        backup_file(source, target, dry_run)
 
 
 def backup_file(source: str, target: str, dry_run: bool) -> None:
@@ -72,39 +59,6 @@ def copy_link(source: str, target: str) -> None:
         raise BatchupError("Symlink copy failed") from e
 
 
-def list_unignored_files_in_tree(
-    path: str, ignored: Set[Pattern[str]], keep_symlinks: bool
-) -> Generator[str, None, None]:
-    """Generates paths to unignored files."""
-    # allow patterns to filter dirs by a trailing slash
-    path = end_dir_with_slash(path)
-
-    if matches_any(path, ignored):
-        logger.log(20, f"Ignored: {path}")
-    elif os.path.islink(path):
-        if keep_symlinks:
-            yield path
-        else:
-            logger.log(20, f"Skipping symlink: {path}")
-    elif os.path.isfile(path):
-        yield path
-    elif os.path.isdir(path):
-        for entry in os.listdir(path):
-            entry_path = os.path.join(path, entry)
-            yield from list_unignored_files_in_tree(
-                entry_path, ignored, keep_symlinks
-            )
-    else:
-        raise BatchupError(f"Can't process path: {path}")
-
-
-def end_dir_with_slash(path: str) -> str:
-    """Ensure directory paths end with a slash."""
-    if os.path.isdir(path):
-        return os.path.join(path, "")
-    return path
-
-
 def backup_zip(
     source: str, derivation: TargetDerivation,
     keep_symlinks: bool, dry_run: bool
@@ -126,14 +80,6 @@ def backup_zip(
                 source, target,
                 keep_empty_dirs=True, keep_symlinks=keep_symlinks
             )
-
-
-def needs_zip_update(dir: str, zip_file: str, keep_symlinks: bool) -> bool:
-    """Decides whether contents of directory updated since zipped."""
-    for entry in list_unignored_files_in_tree(dir, set(), keep_symlinks):
-        if is_newer(entry, zip_file):
-            return True
-    return False
 
 
 def inject_logger(logger_: logging.Logger) -> None:

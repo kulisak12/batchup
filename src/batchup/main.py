@@ -5,10 +5,11 @@ import sys
 from typing import Dict, List, Optional, Set, TextIO, Tuple
 
 from batchup.args import Namespace, parse_args
-from batchup.backup import backup_tree, backup_zip, expand_globs, inject_logger
+from batchup.backup import backup_tree, backup_zip, inject_logger
 from batchup.patterns import glob_to_path_matching_pattern
 from batchup.rules import parse_rules
 from batchup.target import TargetDerivation, select_target_derivation
+from batchup.tree import expand_globs
 
 args: Namespace
 logger: logging.Logger
