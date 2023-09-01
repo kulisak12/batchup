@@ -1,20 +1,49 @@
-from typing import Dict, List, Optional, Set, TextIO, Tuple
+from typing import Dict, List, NamedTuple, Pattern, Set, TextIO
 
 from batchup import BatchupError
+from batchup.patterns import glob_to_path_matching_pattern
+from batchup.tree import expand_globs
+
+
+class RulesGlobs(NamedTuple):
+    exec: List[str]
+    copy: List[str]
+    zip: List[str]
+    ignore: List[str]
+
+
+class Rules(NamedTuple):
+    exec: List[str]
+    copy: List[str]
+    zip: List[str]
+    ignore: Set[Pattern[str]]
+
+
+def expand_rules(rules_globs: RulesGlobs) -> Rules:
+    """Expands globs into lists of paths."""
+    # no need to copy files that will be zipped
+    ignore = rules_globs.ignore + rules_globs.zip
+    patterns = {glob_to_path_matching_pattern(glob) for glob in ignore}
+    return Rules(
+        expand_globs(rules_globs.exec),
+        expand_globs(rules_globs.copy),
+        expand_globs(rules_globs.zip),
+        patterns
+    )
 
 
 def parse_rules(
     rules_file: TextIO
-) -> Tuple[List[str], List[str], List[str], Set[str]]:
-    """Parses paths and ignored patterns from a file."""
+) -> RulesGlobs:
+    """Parses rules globs from a file."""
     sections = parse_headered_file(rules_file)
-    exec_paths = sections.pop("[exec]", [])
-    copy_paths = sections.pop("", []) + sections.pop("[copy]", [])
-    zip_paths = sections.pop("[zip]", [])
-    ignored = set(sections.pop("[ignore]", []))
+    exec = sections.pop("[exec]", [])
+    copy = sections.pop("", []) + sections.pop("[copy]", [])
+    zip = sections.pop("[zip]", [])
+    ignore = sections.pop("[ignore]", [])
     if sections:
         raise BatchupError(f"Unknown section(s): {', '.join(sections)}")
-    return exec_paths, copy_paths, zip_paths, ignored
+    return RulesGlobs(exec, copy, zip, ignore)
 
 
 def parse_headered_file(file: TextIO) -> Dict[str, List[str]]:

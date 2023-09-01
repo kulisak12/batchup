@@ -2,14 +2,12 @@
 import logging
 import os
 import sys
-from typing import Dict, List, Optional, Set, TextIO, Tuple
+from typing import Dict, List, Optional, Pattern, Set, TextIO, Tuple
 
 from batchup.args import Namespace, parse_args
 from batchup.backup import backup_tree, backup_zip, inject_logger
-from batchup.patterns import glob_to_path_matching_pattern
-from batchup.rules import parse_rules
+from batchup.rules import expand_rules, parse_rules
 from batchup.target import TargetDerivation, select_target_derivation
-from batchup.tree import expand_globs
 
 args: Namespace
 logger: logging.Logger
@@ -24,12 +22,11 @@ def main() -> None:
 
     target_derivation = select_target_derivation(args.root, args.backup_dir)
     with open(args.rules) as f:
-        exec_paths, copy_paths, zip_paths, ignored_globs = parse_rules(f)
-    # no need to copy files that will be zipped
-    ignored_globs.update(zip_paths)
+        rules_globs = parse_rules(f)
+    rules = expand_rules(rules_globs)
 
-    run_execs(exec_paths)
-    run_backup(copy_paths, zip_paths, target_derivation, ignored_globs)
+    run_execs(rules.exec)
+    run_backup(rules.copy, rules.zip, target_derivation, rules.ignore)
 
 
 def run_execs(exec_paths: List[str]) -> None:
@@ -37,7 +34,7 @@ def run_execs(exec_paths: List[str]) -> None:
 
     Scripts are executed in the current directory.
     """
-    for exec_path in expand_globs(exec_paths):
+    for exec_path in exec_paths:
         if args.dry_run:
             logger.log(30, f"Would execute: {exec_path}")
         else:
@@ -46,17 +43,16 @@ def run_execs(exec_paths: List[str]) -> None:
 
 
 def run_backup(
-    paths: List[str], zip_paths: List[str],
-    target_derivation: TargetDerivation, ignored_globs: Set[str]
+    copy_paths: List[str], zip_paths: List[str],
+    target_derivation: TargetDerivation, ignore: Set[Pattern[str]]
 ) -> None:
     """Backup paths to backup_dir."""
-    ignored = {glob_to_path_matching_pattern(path) for path in ignored_globs}
-    for source_tree in expand_globs(paths):
+    for source_tree in copy_paths:
         backup_tree(
             source_tree, target_derivation,
-            ignored, args.keep_symlinks, args.dry_run
+            ignore, args.keep_symlinks, args.dry_run
         )
-    for zip_tree in expand_globs(zip_paths):
+    for zip_tree in zip_paths:
         backup_zip(
             zip_tree, target_derivation,
             args.keep_symlinks, args.dry_run

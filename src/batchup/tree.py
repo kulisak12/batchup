@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 import glob
 import os
-from typing import Generator, Iterable, Optional, Pattern, Set, Tuple
+from typing import Generator, Iterable, List, Optional, Pattern, Set, Tuple
 
 from batchup import BatchupError
 from batchup.patterns import matches_any
 
 
-def expand_globs(globs: Iterable[str]) -> Generator[str, None, None]:
+def expand_globs(globs: List[str]) -> List[str]:
     """Generates all paths defined by globs."""
+    paths: List[str] = []
     for path in globs:
-        yield from glob.glob(path, recursive=True)
+        paths.extend(glob.glob(path))
+    return paths
 
 
 def is_newer(source: str, target: str) -> bool:
