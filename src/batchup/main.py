@@ -34,15 +34,23 @@ def main() -> None:
 
 def main_checked() -> None:
     target_derivation = select_target_derivation(args.root, args.backup_dir)
-    with open(args.rules) as f:
-        rules_globs = parse_rules(f)
-    rules = expand_rules(rules_globs)
+    rules = get_rules(args.rules)
 
     if args.orphans:
         print_orphans(rules, target_derivation)
     else:
         run_execs(rules.exec)
         run_backup(rules, target_derivation)
+
+
+def get_rules(rules_file: str) -> Rules:
+    """Parses rules from file and processes them."""
+    try:
+        with open(rules_file) as f:
+            rules_globs = parse_rules(f)
+    except OSError as e:
+        raise BatchupError("Error reading rules file") from e
+    return expand_rules(rules_globs)
 
 
 def run_execs(exec_paths: List[str]) -> None:
