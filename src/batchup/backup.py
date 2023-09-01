@@ -36,8 +36,9 @@ def is_newer(source: str, target: str) -> bool:
     """Tests if the source file is newer than the target file."""
     if not os.path.exists(target):
         return True
-    source_time = os.path.getmtime(source)
-    target_time = os.path.getmtime(target)
+    # using lstat to avoid following symlinks
+    source_time = os.lstat(source).st_mtime
+    target_time = os.lstat(target).st_mtime
     # some devices have limited precision
     TOLERANCE = 10  # seconds
     return source_time - target_time > TOLERANCE
@@ -55,9 +56,20 @@ def backup_file(source: str, target: str, dry_run: bool) -> None:
             "Interrupt received, waiting for copy to finish. Interrupt again to force exit."
         ):
             if os.path.islink(source):
-                os.symlink(os.readlink(source), target)
+                copy_link(source, target)
             else:
                 shutil.copy(source, target)
+
+
+def copy_link(source: str, target: str) -> None:
+    """Copies a symlink.
+
+    Throws an exception if the symlink can't be copied.
+    """
+    try:
+        os.symlink(os.readlink(source), target)
+    except OSError as e:
+        raise BatchupError("Symlink copy failed") from e
 
 
 def list_unignored_files_in_tree(
