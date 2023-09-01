@@ -15,10 +15,10 @@ logger: logging.Logger
 
 def backup_tree(
     tree: str, derivation: TargetDerivation,
-    ignored: Set[Pattern[str]], keep_symlinks: bool, dry_run: bool
+    ignore: Set[Pattern[str]], keep_symlinks: bool, dry_run: bool
 ) -> None:
     """Performs a backup of a tree."""
-    categorized_tree = categorize_paths_in_tree(tree, ignored, keep_symlinks)
+    categorized_tree = categorize_paths_in_tree(tree, ignore, keep_symlinks)
     for source, category in categorized_tree:
         if category != "":
             logger.log(20, f"{category}: {source}")

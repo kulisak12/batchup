@@ -28,7 +28,7 @@ def is_newer(source: str, target: str) -> bool:
 
 
 def categorize_paths_in_tree(
-    path: str, ignored: Set[Pattern[str]], keep_symlinks: bool
+    path: str, ignore: Set[Pattern[str]], keep_symlinks: bool
 ) -> Generator[Tuple[str, str], None, None]:
     """Partitions the tree to ignored, skipped and included paths.
 
@@ -37,7 +37,7 @@ def categorize_paths_in_tree(
     # allow patterns to filter dirs by a trailing slash
     path = _end_dir_with_slash(path)
 
-    if matches_any(path, ignored):
+    if matches_any(path, ignore):
         yield (path, "Ignored")
     elif os.path.islink(path):
         if keep_symlinks:
@@ -50,7 +50,7 @@ def categorize_paths_in_tree(
         for entry in os.listdir(path):
             entry_path = os.path.join(path, entry)
             yield from categorize_paths_in_tree(
-                entry_path, ignored, keep_symlinks
+                entry_path, ignore, keep_symlinks
             )
     else:
         raise BatchupError(f"Can't process path: {path}")
