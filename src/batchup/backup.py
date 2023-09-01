@@ -64,7 +64,7 @@ def backup_zip(
     keep_symlinks: bool, dry_run: bool
 ) -> None:
     """Zips source and backups it to target."""
-    target = derivation(source) + ".zip"
+    target = derivation(get_zip_name(source))
     target_dir = os.path.dirname(target)
     if not needs_zip_update(source, target, keep_symlinks):
         logger.log(10, f"Up to date: {source}")
@@ -80,6 +80,12 @@ def backup_zip(
                 source, target,
                 keep_empty_dirs=True, keep_symlinks=keep_symlinks
             )
+
+
+def get_zip_name(source: str) -> str:
+    """Returns the name of the zip file for a source."""
+    dir_path = os.path.dirname(os.path.join(source, ""))
+    return dir_path + ".zip"
 
 
 def inject_logger(logger_: logging.Logger) -> None:

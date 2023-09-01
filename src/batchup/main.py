@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Pattern, Set, TextIO, Tuple
 
 from batchup.args import Namespace, parse_args
 from batchup.backup import backup_tree, backup_zip, inject_logger
+from batchup.orphans import list_orphans
 from batchup.rules import Rules, expand_rules, parse_rules
 from batchup.target import TargetDerivation, select_target_derivation
 
@@ -54,6 +55,15 @@ def run_backup(rules: Rules, target_derivation: TargetDerivation) -> None:
             zip_tree, target_derivation,
             args.keep_symlinks, args.dry_run
         )
+
+
+def print_orphans(rules: Rules, target_derivation: TargetDerivation) -> None:
+    """Lists files that are in backed up but not in source."""
+    for orphan in list_orphans(
+        rules, target_derivation,
+        args.keep_symlinks, args.backup_dir
+    ):
+        print(orphan)
 
 
 def build_logger(verbose_count: int) -> logging.Logger:

@@ -27,6 +27,14 @@ def is_newer(source: str, target: str) -> bool:
     return source_time - target_time > TOLERANCE
 
 
+def list_included_paths_in_tree(
+    tree: str, ignore: Set[Pattern[str]], keep_symlinks: bool
+) -> Generator[str, None, None]:
+    """Generates paths to files that aren't ignored or skipped."""
+    categorized_tree = categorize_paths_in_tree(tree, ignore, keep_symlinks)
+    yield from filter_included_files(categorized_tree)
+
+
 def categorize_paths_in_tree(
     path: str, ignore: Set[Pattern[str]], keep_symlinks: bool
 ) -> Generator[Tuple[str, str], None, None]:
@@ -67,8 +75,8 @@ def filter_included_files(
 
 def needs_zip_update(dir: str, zip_file: str, keep_symlinks: bool) -> bool:
     """Decides whether contents of directory updated since zipped."""
-    categorized_dir = categorize_paths_in_tree(dir, set(), keep_symlinks)
-    for entry in filter_included_files(categorized_dir):
+    included = list_included_paths_in_tree(dir, set(), keep_symlinks)
+    for entry in included:
         if is_newer(entry, zip_file):
             return True
     return False
