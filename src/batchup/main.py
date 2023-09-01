@@ -26,8 +26,11 @@ def main() -> None:
         rules_globs = parse_rules(f)
     rules = expand_rules(rules_globs)
 
-    run_execs(rules.exec)
-    run_backup(rules, target_derivation)
+    if args.orphans:
+        print_orphans(rules, target_derivation)
+    else:
+        run_execs(rules.exec)
+        run_backup(rules, target_derivation)
 
 
 def run_execs(exec_paths: List[str]) -> None:
