@@ -4,6 +4,7 @@ import os
 import sys
 from typing import Dict, List, Optional, Pattern, Set, TextIO, Tuple
 
+from batchup import BatchupError
 from batchup.args import Namespace, parse_args
 from batchup.backup import backup_tree, backup_zip, inject_logger
 from batchup.orphans import list_orphans
@@ -21,6 +22,17 @@ def main() -> None:
     logger = build_logger(args.verbose)
     inject_logger(logger)
 
+    try:
+        main_checked()
+    except BatchupError as e:
+        message = str(e)
+        if e.__cause__:
+            message += ": " + str(e.__cause__)
+        print(message, file=sys.stderr)
+        sys.exit(1)
+
+
+def main_checked() -> None:
     target_derivation = select_target_derivation(args.root, args.backup_dir)
     with open(args.rules) as f:
         rules_globs = parse_rules(f)
