@@ -33,7 +33,7 @@ def categorize_paths_in_tree(
     The category of included paths is an empty string.
     """
     # allow patterns to filter dirs by a trailing slash
-    path = end_dir_with_slash(path)
+    path = _end_dir_with_slash(path)
 
     if matches_any(path, ignored):
         yield (path, "Ignored")
@@ -72,7 +72,7 @@ def needs_zip_update(dir: str, zip_file: str, keep_symlinks: bool) -> bool:
     return False
 
 
-def end_dir_with_slash(path: str) -> str:
+def _end_dir_with_slash(path: str) -> str:
     """Ensure directory paths end with a slash."""
     if os.path.isdir(path):
         return os.path.join(path, "")

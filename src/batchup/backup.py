@@ -43,12 +43,12 @@ def backup_file(source: str, target: str, dry_run: bool) -> None:
             "Interrupt received, waiting for copy to finish. Interrupt again to force exit."
         ):
             if os.path.islink(source):
-                copy_link(source, target)
+                _copy_link(source, target)
             else:
                 shutil.copy(source, target)
 
 
-def copy_link(source: str, target: str) -> None:
+def _copy_link(source: str, target: str) -> None:
     """Copies a symlink.
 
     Throws an exception if the symlink can't be copied.
