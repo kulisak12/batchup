@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Pattern, Set, TextIO, Tuple
 
 from batchup.args import Namespace, parse_args
 from batchup.backup import backup_tree, backup_zip, inject_logger
-from batchup.rules import expand_rules, parse_rules
+from batchup.rules import Rules, expand_rules, parse_rules
 from batchup.target import TargetDerivation, select_target_derivation
 
 args: Namespace
@@ -26,7 +26,7 @@ def main() -> None:
     rules = expand_rules(rules_globs)
 
     run_execs(rules.exec)
-    run_backup(rules.copy, rules.zip, target_derivation, rules.ignore)
+    run_backup(rules, target_derivation)
 
 
 def run_execs(exec_paths: List[str]) -> None:
@@ -42,17 +42,14 @@ def run_execs(exec_paths: List[str]) -> None:
             os.system(exec_path)
 
 
-def run_backup(
-    copy_paths: List[str], zip_paths: List[str],
-    target_derivation: TargetDerivation, ignore: Set[Pattern[str]]
-) -> None:
+def run_backup(rules: Rules, target_derivation: TargetDerivation) -> None:
     """Backup paths to backup_dir."""
-    for source_tree in copy_paths:
+    for source_tree in rules.copy:
         backup_tree(
             source_tree, target_derivation,
-            ignore, args.keep_symlinks, args.dry_run
+            rules.ignore, args.keep_symlinks, args.dry_run
         )
-    for zip_tree in zip_paths:
+    for zip_tree in rules.zip:
         backup_zip(
             zip_tree, target_derivation,
             args.keep_symlinks, args.dry_run
