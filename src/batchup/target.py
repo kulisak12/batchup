@@ -30,7 +30,7 @@ def get_target_derivation(source_root: str, backup_dir: str) -> TargetDerivation
     # prevent same-file errors and repeated backups
     if _is_subdir(source_root, backup_dir):
         raise BatchupError(
-            f"Root can't be a subdirectory of backup dir"
+            "Root can't be a subdirectory of backup dir"
         )
 
     def derivation(source: str) -> str:

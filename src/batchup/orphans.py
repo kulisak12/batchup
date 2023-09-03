@@ -1,5 +1,3 @@
-from typing import List, Pattern, Set
-
 from batchup.backup import get_zip_name
 from batchup.rules import Rules
 from batchup.target import TargetDerivation

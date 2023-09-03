@@ -2,7 +2,7 @@
 import logging
 import os
 import sys
-from typing import Dict, List, Optional, Pattern, Set, TextIO, Tuple
+from typing import List
 
 from batchup import BatchupError
 from batchup.args import Namespace, parse_args

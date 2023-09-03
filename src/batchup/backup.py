@@ -2,7 +2,7 @@
 import logging
 import os
 import shutil
-from typing import Optional, Pattern, Set
+from typing import Pattern, Set
 
 from batchup import BatchupError
 from batchup.interrupt import ExitOnDoubleInterrupt

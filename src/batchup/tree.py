@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import glob
 import os
-from typing import Generator, Iterable, List, Optional, Pattern, Set, Tuple
+from typing import Generator, Iterable, List, Pattern, Set, Tuple
 
 from batchup import BatchupError
 from batchup.patterns import matches_any
