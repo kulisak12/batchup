@@ -1,18 +1,21 @@
-from typing import Dict, List, NamedTuple, Pattern, Set, TextIO
+import dataclasses
+from typing import Dict, List, Pattern, Set, TextIO
 
 from batchup import BatchupError
 from batchup.patterns import glob_to_path_matching_pattern
 from batchup.tree import expand_globs
 
 
-class RulesGlobs(NamedTuple):
+@dataclasses.dataclass
+class RulesGlobs:
     exec: List[str]
     copy: List[str]
     zip: List[str]
     ignore: List[str]
 
 
-class Rules(NamedTuple):
+@dataclasses.dataclass
+class Rules:
     exec: List[str]
     copy: List[str]
     zip: List[str]
@@ -21,9 +24,10 @@ class Rules(NamedTuple):
 
 def expand_rules(rules_globs: RulesGlobs) -> Rules:
     """Expands globs into lists of paths."""
-    # no need to copy files that will be zipped
-    ignore = rules_globs.ignore + rules_globs.zip
-    patterns = {glob_to_path_matching_pattern(glob) for glob in ignore}
+    patterns = {
+        glob_to_path_matching_pattern(glob)
+        for glob in rules_globs.ignore
+    }
     return Rules(
         expand_globs(rules_globs.exec),
         expand_globs(rules_globs.copy),

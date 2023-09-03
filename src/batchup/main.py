@@ -50,6 +50,11 @@ def get_rules(rules_file: str) -> Rules:
             rules_globs = parse_rules(f)
     except OSError as e:
         raise BatchupError("Error reading rules file") from e
+
+    # prevent infinite copying
+    rules_globs.ignore += [args.backup_dir]
+    # no need to copy files that will be zipped
+    rules_globs.ignore += rules_globs.zip
     return expand_rules(rules_globs)
 
 
