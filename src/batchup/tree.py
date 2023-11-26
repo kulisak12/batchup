@@ -43,11 +43,11 @@ def categorize_paths_in_tree(
     The category of included paths is an empty string.
     """
     # allow patterns to filter dirs by a trailing slash
-    path = _end_dir_with_slash(path)
+    decorated_path = _end_dir_with_slash(path)
 
-    if matches_any(path, ignore):
-        yield (path, "Ignored")
-    elif os.path.islink(path):
+    if matches_any(decorated_path, ignore):
+        yield (decorated_path, "Ignored")
+    elif os.path.islink(path):  # must use un-decorated path
         if keep_symlinks:
             yield (path, "")
         else:
