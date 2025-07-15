@@ -8,7 +8,7 @@ authors = [
 ]
 name = "batchup"
 version = "0.1"
-description = "A simple backup utility."
+description = "An unnecessary backup utility."
 readme = "README.md"
 requires-python = ">=3.7"
 keywords = ["backup"]
